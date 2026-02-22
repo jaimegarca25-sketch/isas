@@ -1,229 +1,275 @@
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, X, Plus, BookOpen, Clock, MapPin, GraduationCap, Calendar } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Académica Comillas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FAF9F6;
+        }
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+        .bg-burgundy {
+            background-color: #800020;
+        }
+        .text-burgundy {
+            color: #800020;
+        }
+        .border-burgundy {
+            border-color: #800020;
+        }
+        .modal-overlay {
+            background-color: rgba(45, 45, 45, 0.4);
+            backdrop-filter: blur(8px);
+        }
+        /* Transiciones suaves */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-slate-800">
 
-const App = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  // Datos de ejemplo actualizados
-  const [events] = useState({
-    '2024-05-15': [{ title: 'Examen Macroeconomía', time: '09:00', type: 'Examen', room: 'E-302' }],
-    '2024-05-20': [{ title: 'Entrega Trabajo Derecho', time: '23:59', type: 'Entrega', room: 'Moodle' }],
-    '2024-05-22': [{ title: 'Seminario Ética Profesional', time: '12:30', type: 'Clase', room: 'Aula Magna' }],
-  });
-
-  const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
-  const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
-
-  const daysInMonth = getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth());
-  const firstDay = getFirstDayOfMonth(currentDate.getFullYear(), currentDate.getMonth());
-  
-  // Ajuste Lunes (0) a Domingo (6)
-  const firstDayAdjusted = firstDay === 0 ? 6 : firstDay - 1;
-
-  const months = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-  ];
-
-  const daysOfWeek = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-
-  const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-  const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-
-  const handleDayClick = (day) => {
-    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    setSelectedDate({
-      day,
-      month: months[currentDate.getMonth()],
-      year: currentDate.getFullYear(),
-      fullDate: dateStr
-    });
-    setIsModalOpen(true);
-  };
-
-  const renderCalendarDays = () => {
-    const calendarDays = [];
-    const today = new Date();
-    const isCurrentMonth = today.getMonth() === currentDate.getMonth() && today.getFullYear() === currentDate.getFullYear();
-
-    for (let i = 0; i < firstDayAdjusted; i++) {
-      calendarDays.push(<div key={`empty-${i}`} className="h-20 md:h-28 border-b border-r border-slate-100 bg-[#fdfdfd]"></div>);
-    }
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const dayEvents = events[dateStr] || [];
-      const isToday = isCurrentMonth && today.getDate() === day;
-
-      calendarDays.push(
-        <div 
-          key={day} 
-          onClick={() => handleDayClick(day)}
-          className={`h-20 md:h-28 border-b border-r border-slate-100 p-2 transition-all cursor-pointer hover:bg-slate-50 group relative bg-white`}
-        >
-          <span className={`inline-flex items-center justify-center w-7 h-7 text-xs font-medium rounded-full transition-colors ${isToday ? 'bg-[#800020] text-white shadow-md' : 'text-slate-500 group-hover:text-[#800020]'}`}>
-            {day}
-          </span>
-          
-          <div className="mt-1 space-y-1">
-            {dayEvents.length > 0 && (
-              <div className="flex gap-1 flex-wrap">
-                {dayEvents.slice(0, 3).map((_, idx) => (
-                  <div key={idx} className="w-1.5 h-1.5 rounded-full bg-[#800020]/40" />
-                ))}
-              </div>
-            )}
-            {dayEvents.slice(0, 1).map((event, idx) => (
-              <div key={idx} className="hidden md:block text-[9px] font-semibold text-[#800020] truncate uppercase tracking-tighter">
-                {event.title}
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    return calendarDays;
-  };
-
-  return (
-    <div className="min-h-screen bg-[#FAF9F6] text-slate-800 font-serif">
-      {/* Header Minimalista */}
-      <header className="bg-white border-b border-slate-100 py-6 px-4 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-[#800020] flex items-center justify-center rounded-sm">
-               <GraduationCap className="text-white" size={22} />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold tracking-[0.15em] text-[#2D2D2D] uppercase">Agenda Comillas</h1>
-              <p className="text-[10px] text-slate-400 font-sans tracking-widest uppercase">Excelencia Académica</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-8 font-sans text-[11px] font-bold uppercase tracking-widest text-slate-500">
-            <button className="hover:text-[#800020] transition-colors">Cursos</button>
-            <button className="hover:text-[#800020] transition-colors border-b-2 border-[#800020] text-[#800020] pb-1">Calendario</button>
-            <button className="hover:text-[#800020] transition-colors">Expediente</button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto py-10 px-4 md:px-8">
-        {/* Navegación de Mes */}
-        <div className="flex flex-col md:flex-row items-baseline justify-between mb-12 gap-6">
-          <div className="animate-in slide-in-from-left duration-700">
-            <h2 className="text-4xl font-light text-[#2D2D2D]">
-              {months[currentDate.getMonth()]} <span className="font-extrabold text-[#800020]">{currentDate.getFullYear()}</span>
-            </h2>
-          </div>
-          
-          <div className="flex items-center gap-4 font-sans">
-            <button 
-              onClick={() => setCurrentDate(new Date())}
-              className="text-[10px] font-bold uppercase tracking-widest px-4 py-2 border border-slate-200 hover:border-[#800020] hover:text-[#800020] transition-all rounded-full"
-            >
-              Mes Actual
-            </button>
-            <div className="flex items-center bg-white border border-slate-100 rounded-full p-1 shadow-sm">
-              <button onClick={prevMonth} className="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-400 hover:text-[#800020]">
-                <ChevronLeft size={18} />
-              </button>
-              <div className="w-px h-4 bg-slate-100 mx-1"></div>
-              <button onClick={nextMonth} className="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-400 hover:text-[#800020]">
-                <ChevronRight size={18} />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Estructura Calendario */}
-        <div className="bg-white rounded-lg shadow-[0_10px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100 overflow-hidden animate-in fade-in duration-1000">
-          <div className="grid grid-cols-7 border-b border-slate-100 bg-[#fdfdfd]">
-            {daysOfWeek.map(day => (
-              <div key={day} className="py-5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                {day}
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 border-l border-slate-100">
-            {renderCalendarDays()}
-          </div>
-        </div>
-      </main>
-
-      {/* Modal Minimalista */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-          <div 
-            className="absolute inset-0 bg-[#2D2D2D]/40 backdrop-blur-md"
-            onClick={() => setIsModalOpen(false)}
-          ></div>
-          
-          <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="p-8 border-b border-slate-50 flex justify-between items-center">
-              <div>
-                <span className="text-[10px] font-bold text-[#800020] uppercase tracking-[0.3em]">Planificación</span>
-                <h3 className="text-3xl font-light text-[#2D2D2D] mt-1">
-                  {selectedDate?.day} <span className="font-bold">{selectedDate?.month}</span>
-                </h3>
-              </div>
-              <button 
-                onClick={() => setIsModalOpen(false)}
-                className="p-2 text-slate-300 hover:text-[#800020] transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className="p-8">
-              <div className="space-y-8">
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-100 py-6 px-4 sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-burgundy flex items-center justify-center rounded-sm">
+                    <i data-lucide="graduation-cap" class="text-white w-6 h-6"></i>
+                </div>
                 <div>
-                  {events[selectedDate?.fullDate]?.length > 0 ? (
-                    <div className="space-y-6">
-                      {events[selectedDate?.fullDate].map((event, idx) => (
-                        <div key={idx} className="group relative pl-6 border-l-2 border-[#800020]/20 hover:border-[#800020] transition-colors">
-                          <div className="flex justify-between items-start mb-2">
-                            <h5 className="text-lg font-bold text-slate-800">{event.title}</h5>
-                            <span className="text-[9px] font-bold tracking-widest text-[#800020] bg-[#800020]/5 px-2 py-1 rounded">
-                              {event.type.toUpperCase()}
-                            </span>
-                          </div>
-                          <div className="flex flex-wrap gap-4 text-xs font-sans text-slate-500 uppercase tracking-wider">
-                            <span className="flex items-center gap-1.5"><Clock size={14} className="text-[#800020]" /> {event.time}</span>
-                            <span className="flex items-center gap-1.5"><MapPin size={14} className="text-[#800020]" /> {event.room}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="py-16 text-center">
-                      <Calendar className="mx-auto text-slate-100 mb-4" size={48} />
-                      <p className="text-slate-400 font-sans italic text-sm">Libre de compromisos académicos.</p>
-                    </div>
-                  )}
+                    <h1 class="text-lg font-bold tracking-[0.15em] text-[#2D2D2D] uppercase">Agenda Comillas</h1>
+                    <p class="text-[10px] text-slate-400 tracking-widest uppercase">Excelencia Académica</p>
                 </div>
-
-                <div className="flex gap-4 pt-4">
-                  <button 
-                    className="flex-1 bg-[#800020] text-white py-4 rounded-lg text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#600018] transition-all"
-                    onClick={() => setIsModalOpen(false)}
-                  >
-                    Confirmar Lectura
-                  </button>
-                  <button className="px-5 border border-slate-100 rounded-lg text-slate-400 hover:bg-slate-50 transition-colors">
-                    <Plus size={20} />
-                  </button>
-                </div>
-              </div>
             </div>
-          </div>
+            
+            <nav class="flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                <a href="#" class="hover:text-burgundy transition-colors">Cursos</a>
+                <a href="#" class="hover:text-burgundy border-b-2 border-burgundy text-burgundy pb-1">Calendario</a>
+                <a href="#" class="hover:text-burgundy transition-colors">Expediente</a>
+            </nav>
         </div>
-      )}
-    </div>
-  );
-};
+    </header>
 
-export default App;
+    <main class="max-w-6xl mx-auto py-10 px-4 md:px-8">
+        <!-- Navegación de Mes -->
+        <div class="flex flex-col md:flex-row items-baseline justify-between mb-12 gap-6">
+            <div class="fade-in">
+                <h2 id="month-display" class="text-4xl font-light text-[#2D2D2D] font-serif">
+                    Mayo <span class="font-extrabold text-burgundy">2024</span>
+                </h2>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button onclick="goToToday()" class="text-[10px] font-bold uppercase tracking-widest px-4 py-2 border border-slate-200 hover:border-burgundy hover:text-burgundy transition-all rounded-full bg-white">
+                    Mes Actual
+                </button>
+                <div class="flex items-center bg-white border border-slate-100 rounded-full p-1 shadow-sm">
+                    <button onclick="changeMonth(-1)" class="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-400 hover:text-burgundy">
+                        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                    </button>
+                    <div class="w-px h-4 bg-slate-100 mx-1"></div>
+                    <button onclick="changeMonth(1)" class="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-400 hover:text-burgundy">
+                        <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estructura Calendario -->
+        <div class="bg-white rounded-lg shadow-[0_10px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100 overflow-hidden fade-in">
+            <!-- Cabecera Días -->
+            <div class="grid grid-cols-7 border-b border-slate-100 bg-[#fdfdfd]">
+                <div class="py-5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Lun</div>
+                <div class="py-5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Mar</div>
+                <div class="py-5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Mié</div>
+                <div class="py-5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Jue</div>
+                <div class="py-5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Vie</div>
+                <div class="py-5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Sáb</div>
+                <div class="py-5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Dom</div>
+            </div>
+            <!-- Grid de Días -->
+            <div id="calendar-grid" class="grid grid-cols-7 border-l border-slate-100">
+                <!-- Se genera dinámicamente con JS -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de Detalles -->
+    <div id="modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-6">
+        <div class="absolute inset-0 modal-overlay" onclick="closeModal()"></div>
+        
+        <div class="bg-white w-full max-w-lg rounded-xl shadow-2xl relative z-10 overflow-hidden fade-in">
+            <div class="p-8 border-b border-slate-50 flex justify-between items-center">
+                <div>
+                    <span class="text-[10px] font-bold text-burgundy uppercase tracking-[0.3em]">Planificación</span>
+                    <h3 id="modal-date-display" class="text-3xl font-light text-[#2D2D2D] mt-1 font-serif">
+                        15 <span class="font-bold">Mayo</span>
+                    </h3>
+                </div>
+                <button onclick="closeModal()" class="p-2 text-slate-300 hover:text-burgundy transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <div class="p-8">
+                <div id="event-list" class="space-y-8 min-h-[100px]">
+                    <!-- Lista de eventos dinámica -->
+                </div>
+
+                <div class="flex gap-4 pt-8">
+                    <button onclick="closeModal()" class="flex-1 bg-burgundy text-white py-4 rounded-lg text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#600018] transition-all">
+                        Confirmar Lectura
+                    </button>
+                    <button class="px-5 border border-slate-100 rounded-lg text-slate-400 hover:bg-slate-50 transition-colors">
+                        <i data-lucide="plus" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración y Datos
+        let currentDate = new Date();
+        const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        
+        const events = {
+            '2024-05-15': [{ title: 'Examen Macroeconomía', time: '09:00', type: 'Examen', room: 'E-302' }],
+            '2024-05-20': [{ title: 'Entrega Trabajo Derecho', time: '23:59', type: 'Entrega', room: 'Moodle' }],
+            '2024-05-22': [{ title: 'Seminario Ética Profesional', time: '12:30', type: 'Clase', room: 'Aula Magna' }],
+        };
+
+        function init() {
+            lucide.createIcons();
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            const display = document.getElementById('month-display');
+            
+            grid.innerHTML = '';
+            
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            display.innerHTML = `${months[month]} <span class="font-extrabold text-burgundy">${year}</span>`;
+            
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            // Ajuste Lunes (1) a Domingo (0) para que Lunes sea 0
+            let firstDayAdjusted = firstDay === 0 ? 6 : firstDay - 1;
+
+            // Celdas vacías
+            for (let i = 0; i < firstDayAdjusted; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'h-20 md:h-28 border-b border-r border-slate-100 bg-[#fdfdfd]';
+                grid.appendChild(emptyCell);
+            }
+
+            // Celdas de días
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayEvents = events[dateStr] || [];
+                const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+
+                const cell = document.createElement('div');
+                cell.className = 'h-20 md:h-28 border-b border-r border-slate-100 p-2 transition-all cursor-pointer hover:bg-slate-50 group relative bg-white';
+                cell.onclick = () => openModal(day, month, year, dateStr);
+
+                const todayClass = isToday ? 'bg-burgundy text-white shadow-md' : 'text-slate-500 group-hover:text-burgundy';
+                
+                let eventsHtml = '';
+                if (dayEvents.length > 0) {
+                    eventsHtml = `
+                        <div class="mt-1 space-y-1">
+                            <div class="flex gap-1 flex-wrap">
+                                ${dayEvents.map(() => `<div class="w-1.5 h-1.5 rounded-full bg-[#800020] opacity-40"></div>`).join('')}
+                            </div>
+                            <div class="hidden md:block text-[9px] font-semibold text-burgundy truncate uppercase tracking-tighter">
+                                ${dayEvents[0].title}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                cell.innerHTML = `
+                    <span class="inline-flex items-center justify-center w-7 h-7 text-xs font-medium rounded-full transition-colors ${todayClass}">
+                        ${day}
+                    </span>
+                    ${eventsHtml}
+                `;
+                grid.appendChild(cell);
+            }
+        }
+
+        function changeMonth(offset) {
+            currentDate.setMonth(currentDate.getMonth() + offset);
+            renderCalendar();
+        }
+
+        function goToToday() {
+            currentDate = new Date();
+            renderCalendar();
+        }
+
+        function openModal(day, month, year, dateStr) {
+            const modal = document.getElementById('modal');
+            const dateDisplay = document.getElementById('modal-date-display');
+            const eventList = document.getElementById('event-list');
+            
+            dateDisplay.innerHTML = `${day} <span class="font-bold">${months[month]}</span>`;
+            
+            const dayEvents = events[dateStr] || [];
+            
+            if (dayEvents.length > 0) {
+                eventList.innerHTML = dayEvents.map(event => `
+                    <div class="group relative pl-6 border-l-2 border-[#80002022] hover:border-burgundy transition-colors">
+                        <div class="flex justify-between items-start mb-2">
+                            <h5 class="text-lg font-bold text-slate-800">${event.title}</h5>
+                            <span class="text-[9px] font-bold tracking-widest text-burgundy bg-[#8000200d] px-2 py-1 rounded">
+                                ${event.type.toUpperCase()}
+                            </span>
+                        </div>
+                        <div class="flex flex-wrap gap-4 text-xs text-slate-500 uppercase tracking-wider">
+                            <span class="flex items-center gap-1.5"><i data-lucide="clock" class="w-3.5 h-3.5 text-burgundy"></i> ${event.time}</span>
+                            <span class="flex items-center gap-1.5"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-burgundy"></i> ${event.room}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                eventList.innerHTML = `
+                    <div class="py-16 text-center">
+                        <i data-lucide="calendar" class="mx-auto text-slate-100 mb-4 w-12 h-12"></i>
+                        <p class="text-slate-400 italic text-sm">Libre de compromisos académicos.</p>
+                    </div>
+                `;
+            }
+
+            modal.classList.remove('hidden');
+            lucide.createIcons(); // Recargar iconos del modal
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        // Inicializar al cargar
+        window.onload = init;
+    </script>
+</body>
+</html>
+              
